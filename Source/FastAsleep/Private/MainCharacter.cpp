@@ -32,7 +32,11 @@ float AMainCharacter::ToggleCrouch()
 
 float AMainCharacter::ShouldSprint(bool isPressed)
 {
-	if (m_shouldCrouch) return m_crouchSpeed;
+	if (m_shouldCrouch)
+	{
+		m_shouldSprint = false;
+		return m_crouchSpeed;
+	}
 	m_shouldSprint = isPressed && m_stamina > 0;
 	FString msg = FString::Printf(TEXT("Should sprint: %f"), m_shouldSprint);
 	GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Red, msg);
@@ -46,10 +50,11 @@ float AMainCharacter::ShouldSprint(bool isPressed)
 
 void AMainCharacter::Roll()
 {
-	if (m_stamina < 10) return;
+	if (m_stamina < m_rollStamina) return;
 	if (m_movement == nullptr) return;
+	m_isRolling = true;
 	// Figure out how much to use
-	UseStamina(10);
+	UseStamina(m_rollStamina);
 	FVector fwd = GetActorForwardVector();
 	m_movement->AddImpulse(fwd * m_rollImpulseAmt, true);
 }
@@ -70,7 +75,6 @@ void AMainCharacter::RecoverStamina(float deltaTime)
 		m_staminaRecoveryTimer = m_staminaRecoveryWait;
 		float recoveryRate = deltaTime * m_staminaRecoveryPerSec;
 		m_stamina += recoveryRate;
-		m_stamina = FMath::Clamp(m_stamina, 0, 100);
 		m_recoverStamina = m_stamina < 100;
 	}
 	else
@@ -80,6 +84,17 @@ void AMainCharacter::RecoverStamina(float deltaTime)
 	}
 }
 
+void AMainCharacter::Jump()
+{
+	if (m_movement == nullptr) return;
+	if (m_stamina < m_jumpStamina) return;
+	if (m_isRolling) return;
+	if (m_movement->IsFalling()) return;
+	FVector up = GetActorUpVector();
+	m_movement->AddImpulse(up * m_jumpImpulse, true);
+	UseStamina(m_jumpStamina);
+}
+
 // Called every frame
 void AMainCharacter::Tick(float DeltaTime)
 {
@@ -87,8 +102,8 @@ void AMainCharacter::Tick(float DeltaTime)
 	RecoverStamina(DeltaTime);
 	if (m_shouldSprint)
 	{
-		UseStamina(10 * DeltaTime);
-		if (m_stamina <= 0)
+		UseStamina(m_sprintStaminaPerSecond * DeltaTime);
+		if (m_stamina <= 0 || m_shouldCrouch)
 		{
 			m_movement->MaxWalkSpeed = ShouldSprint(false);
 		}
