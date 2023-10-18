@@ -50,6 +50,8 @@ protected:
 	float m_stamina = 100.0f;
 	bool m_recoverStamina;
 	float m_staminaRecoveryTimer;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Stamina")
+	bool m_unlimitedStamina = false;
 
 	// Jump Settings
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Stamina (Jump)")

@@ -38,8 +38,6 @@ float AMainCharacter::ShouldSprint(bool isPressed)
 		return m_crouchSpeed;
 	}
 	m_shouldSprint = isPressed && m_stamina > 0;
-	FString msg = FString::Printf(TEXT("Should sprint: %f"), m_shouldSprint);
-	GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Red, msg);
 	if (isPressed)
 	{
 		if (m_stamina <= 0) return m_runSpeed;
@@ -108,6 +106,9 @@ void AMainCharacter::Tick(float DeltaTime)
 			m_movement->MaxWalkSpeed = ShouldSprint(false);
 		}
 	}
+
+	// For debugging -- etc
+	if (m_unlimitedStamina) m_stamina = 100;
 }
 
 // Called to bind functionality to input
